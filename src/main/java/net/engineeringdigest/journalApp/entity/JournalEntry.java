@@ -1,5 +1,6 @@
 package net.engineeringdigest.journalApp.entity;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.bson.types.ObjectId;
@@ -10,8 +11,9 @@ import java.time.LocalDateTime;
 import java.util.Date;
 
 @Document (collection = "journal_entries")
-@Getter
-@Setter
+//@Getter
+//@Setter
+@Data
 public class JournalEntry {
     @Id
     private ObjectId id;
