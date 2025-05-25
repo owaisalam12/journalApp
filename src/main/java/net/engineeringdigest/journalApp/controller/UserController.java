@@ -7,6 +7,8 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -20,50 +22,25 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @GetMapping
-    public ResponseEntity<?> getAll() {
-        List<User> all = userService.getAll();
-        if (all != null && !all.isEmpty()) {
-            return new ResponseEntity<>(all, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//    @GetMapping
+//    public ResponseEntity<?> getAll() {
+//        List<User> all = userService.getAll();
+//        if (all != null && !all.isEmpty()) {
+//            return new ResponseEntity<>(all, HttpStatus.OK);
+//        }
+//        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//
+//    }
 
-    }
-
-    @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        try {
-           // user.setDate(LocalDateTime.now());
-            userService.saveEntry(user);
-            return new ResponseEntity<>(user, HttpStatus.CREATED);
-
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
-        }
-
-    }
-
-    @GetMapping("id/{myId}")
-    public ResponseEntity<?> findUserById(@PathVariable ObjectId myId) {
-        Optional<User> journalEntry = userService.findById(myId);
-        if (journalEntry.isPresent()) {
-            return new ResponseEntity<>(journalEntry.get(), HttpStatus.OK);
-
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-
-        }
-
-    }
-
-    @PutMapping("id/{userName}")
-    public ResponseEntity<?> updateUser(@PathVariable String userName, @RequestBody User user) {
+    @PutMapping
+    public ResponseEntity<?> updateUser(@RequestBody User user) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName();
         User userInDb = userService.findByUsername(userName);
         if (userInDb != null) {
             userInDb.setUserName(user.getUserName() != null && !user.getUserName().equalsIgnoreCase("") ? user.getUserName() : userInDb.getUserName());
             userInDb.setPassword(user.getPassword() != null && !user.getPassword().equalsIgnoreCase("") ? user.getPassword() : userInDb.getPassword());
-            userService.saveEntry(userInDb);
+            userService.saveNewUser(userInDb);
             return new ResponseEntity<>(userInDb, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -71,10 +48,27 @@ public class UserController {
 
     }
 
-    @DeleteMapping("id/{myId}")
+    @DeleteMapping
     public ResponseEntity<?> deleteUserById(@PathVariable ObjectId myId) {
-        userService.deleteById(myId);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName();
+        userService.deleteByUserName(userName);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-
     }
+
+
+//
+//    @GetMapping("id/{myId}")
+//    public ResponseEntity<?> findUserById(@PathVariable ObjectId myId) {
+//        Optional<User> journalEntry = userService.findById(myId);
+//        if (journalEntry.isPresent()) {
+//            return new ResponseEntity<>(journalEntry.get(), HttpStatus.OK);
+//
+//        } else {
+//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//        }
+//    }
+//
+
+
 }
